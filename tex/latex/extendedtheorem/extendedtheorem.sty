@@ -1,0 +1,355 @@
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\ProvidesClass{extendedtheorem}
+  [2013/02/20 v1.5 Extended theorem environment^^J
+    by Yuwsuke KIEDA]
+
+\@ifundefined{@remove@from@reset}{%
+  \def\@remove@from@reset#1#2{%
+    \let\@tempb\@elt
+    \expandafter\let\expandafter\@tempa\csname c@#1\endcsname
+    \def\@elt##1{%
+      \expandafter\ifx\csname c@##1\endcsname\@tempa\else
+        \noexpand\@elt{##1}%
+      \fi
+    }%
+    \expandafter\edef\csname cl@#2\endcsname{%
+      \csname cl@#2\endcsname%
+    }%
+    \let\@elt\@tempb%
+  }}\relax
+
+\@ifundefined{@nameedef}{%
+  \def\@nameedef#1{\expandafter\edef\csname #1\endcsname}}\relax
+
+\def\@@local@error#1#2{%
+   \GenericError{%
+      \space\space\space\@spaces\@spaces\@spaces
+   }{%
+      Style file Error: #1%
+   }{%
+      See the extendedtheorem.sty or documents.%
+   }{#2}%
+}
+\gdef\@@local@ehc{%
+  Try typing \space <return> %
+  \space to proceed.\MessageBreak
+  If that doesn't work, type \space X <return> \space to quit.}
+
+\def\theoremstyle#1{%
+  \@ifundefined{@thm@#1}{%
+    \@@local@error{`#1' are undefined}\@@local@ehc}{%
+    \def\@thmstyle{#1}}
+}
+
+\def\addthmstyle#1#2#3#4{%
+  \def\@thmstyle@name{#1}
+  \@namedef{@thm@\@thmstyle@name}{%
+  \def\@thm@headerfont{#2}%
+  \def\@thm@bodyfont{#3}%
+  \def\@thm@commentfont{#4}}
+}
+
+\addthmstyle{Theorem}{\bfseries}{\itshape}{\normalfont\upshape}
+\addthmstyle{Definition}{\bfseries}{\normalfont}{\normalfont}
+
+\newif\if@thm@swap \@thm@swapfalse
+\newif\if@thm@break \@thm@breakfalse
+
+\def\@thm@swappedtheorem{\@thm@swaptrue\@thm@theorem}
+\def\@thm@swappeddefinition{\@thm@swaptrue\@thm@definition}
+\def\@thm@breaktheorem{\@thm@breaktrue\@thm@theorem}
+\def\@thm@breakdefinition{\@thm@breaktrue\@thm@definition}
+\def\@thm@swappedbreaktheorem{%
+   \@thm@swaptrue\@thm@breaktrue\@thm@theorem}
+\def\@thm@swappedbreakdefinition{%
+   \@thm@swaptrue\@thm@breaktrue\@thm@definition}
+
+\theoremstyle{Theorem}
+
+
+\newif\if@thm@nocounter
+\@thm@nocounterfalse
+\def\newtheorem{\@ifstar{\@newtheorem@star}{\@newtheorem}}
+\def\@newtheorem{%
+  \@testopt{\@@newtheorem}{\@arabic}}
+\def\@@newtheorem[#1]#2{%
+  \def\@thm@envname{#2}%
+  \@ifnextchar[{\@newthm@with@sharing@env}{\@newthm[#1]}}
+\def\@newtheorem@star#1{%
+  \def\@thm@envname{#1}%
+  \@newthm@star}
+
+\newcount\@thmID
+\global\@thmID\z@
+
+\newif\if@without@counter
+\newif\if@without@comment
+
+\def\@newthm[#1]#2{%
+  \global\advance\@thmID\@ne
+  \@namedef{@thmcnt@type\the\@thmID}{#1}%
+  \def\@thmcnt@type{\@Alph}%
+  \expandafter\edef\csname @thm@cntname@\@thm@envname\endcsname{%
+    thmcnt\romannumeral\@thmID}%
+  \@ifundefined{c@thmcnt\romannumeral\@thmID}{%
+    \newcounter{thmcnt\romannumeral\@thmID}}{\relax}
+  \setcounter{thmcnt\romannumeral\@thmID}{\z@}
+  \let\@thm@savedelt\@elt
+   \edef\@elt##1{\noexpand\@remove@from@reset
+     {thmcnt\romannumeral\@thmID}{##1}}%
+   \cl@@ckpt
+   \let\@elt\@thm@savedelt
+   \expandafter\edef\csname \@thm@envname\endcsname{%
+     \noexpand\@without@counterfalse
+     \noexpand\@thm
+     \noexpand\@firstofone
+     \expandafter\noexpand\csname @thm@\@thmstyle\endcsname
+        {thmcnt\romannumeral\@thmID}{#2}}%
+   \expandafter\edef\csname \@thm@envname*\endcsname{%
+     \noexpand\@thm@nocountertrue
+     \noexpand\@without@countertrue
+     \noexpand\let\noexpand\@thm@title@postskip\z@
+     \noexpand\@thm
+     \noexpand\@gobble%
+     \expandafter\noexpand\csname @thm@\@thmstyle\endcsname
+        {thmcnt\romannumeral\@thmID}{#2}}%
+   \@namedef{end\@thm@envname}{\@endtheorem}%
+   \@namedef{end\@thm@envname*}{\@endtheorem}%
+   \@ifnextchar[{\@newthm@set@parent}{\relax}%
+}
+
+\def\@newthm@star#1{%
+  \global\advance\@thmID\@ne
+  \expandafter\edef\csname @thm@cntname@\@thm@envname\endcsname{%
+    thmcnt\romannumeral\@thmID}%
+  \@ifundefined{c@thmcnt\romannumeral\@thmID}{%
+    \newcounter{thmcnt\romannumeral\@thmID}}{\relax}
+  \setcounter{thmcnt\romannumeral\@thmID}{\z@}
+  \let\@thm@savedelt\@elt
+   \edef\@elt##1{\noexpand\@remove@from@reset
+     {thmcnt\romannumeral\@thmID}{##1}}%
+   \cl@@ckpt
+   \let\@elt\@thm@savedelt
+   \expandafter\edef\csname \@thm@envname\endcsname{%
+     \noexpand\@thm@nocountertrue
+     \noexpand\@without@countertrue
+     \noexpand\let\noexpand\@thm@title@postskip\z@
+     \noexpand\@thm
+     \noexpand\@gobble%
+     \expandafter\noexpand\csname @thm@\@thmstyle\endcsname
+        {thmcnt\romannumeral\@thmID}{#1}}%
+   \@namedef{end\@thm@envname}{\@endtheorem}%
+   \@namedef{end\@thm@envname*}{\@endtheorem}%
+}
+
+\def\@newthm@set@parent[#1]{% #1: parent
+  \def\@tempa{#1}\def\@tempb{article}%
+  \expandafter\edef\csname thethmcnt\romannumeral\@thmID\endcsname{%
+    \ifx\@tempa\@tempb\relax\else
+      \expandafter\noexpand\csname the#1\endcsname
+      \@thmcountersep
+    \fi
+    \noexpand\@nameuse{@thmcnt@type\the\@thmID}
+    \expandafter\noexpand
+    \csname c@thmcnt\romannumeral\@thmID\endcsname}%
+  \@addtoreset{thmcnt\romannumeral\@thmID}{#1}%
+}
+
+\def\@newthm@with@sharing@env[#1]#2{%
+  \expandafter\edef\csname @thm@cntname@\@thm@envname\endcsname{%
+    \@nameuse{@thm@cntname@#1}}%
+  \expandafter\edef\csname \@thm@envname\endcsname{%
+    \noexpand\@without@counterfalse
+    \noexpand\@thm
+    \noexpand\@firstofone
+    \expandafter\noexpand\csname @thm@\@thmstyle\endcsname
+      {\@nameuse{@thm@cntname@#1}}{#2}}%
+  \expandafter\edef\csname \@thm@envname*\endcsname{%
+    \noexpand\@thm@nocountertrue
+    \noexpand\@without@countertrue
+    \noexpand\let\noexpand\@thm@title@postskip\z@
+    \noexpand\@thm
+    \noexpand\@gobble%
+    \expandafter\noexpand\csname @thm@\@thmstyle\endcsname
+    {\@nameuse{@thm@cntname@#1}}{#2}}%
+  \@namedef{end\@thm@envname}{\@endtheorem}%
+  \@namedef{end\@thm@envname*}{\@endtheorem}%
+}
+
+\def\@thm@counter@format#1{#1}
+
+\def\@thm#1#2#3#4{%
+  \ifx#1\@gobble\@thm@counter@format{\relax}\else\@thm@counter@format{#1}\fi
+  \trivlist
+  \@thm@format
+  #2%
+  \@thm@bodyfont
+  \refstepcounter{#3}%
+  \ifx #1\@gobble
+    \addtocounter{#3}{-1}%
+  \fi
+  \@ifnextchar[%
+    {\@@starttheorem{#4}{%
+        \ifx#1\@gobble\expandafter\@gobble\else\csname the#3\endcsname\fi}}%
+    {\@starttheorem{#4}{%
+        \ifx#1\@gobble\expandafter\@gobble\else\csname the#3\endcsname\fi}}%
+}
+
+\newif\if@thm@title@suffix@with@counter
+\@thm@title@suffix@with@countertrue
+\newif\if@thm@title@suffix@with@comment
+\@thm@title@suffix@with@commenttrue
+\newif\if@thm@counter@suffix@with@comment
+\@thm@counter@suffix@with@commenttrue
+
+\def\@starttheorem#1#2{%
+  \edef\@temp@gobble@check{#2\@empty}%
+  \item[\hskip\@thm@indent%
+    {\normalfont\@thm@headerfont
+     \@without@commenttrue
+     \if@thm@swap
+       \@thm@counter@format{#2}\@thm@counter@suffix%
+       #1%
+       \if@thm@title@suffix@with@counter\@thm@title@suffix\fi
+       \if@thm@nocounter\@thm@title@suffix\fi
+       \hskip\@thm@title@postskip%
+     \else
+       #1%
+       \if@thm@title@suffix@with@counter\@thm@title@suffix\fi
+       \if@thm@nocounter\@thm@title@suffix\fi
+       \hskip\@thm@title@postskip%
+       \@thm@counter@format{#2}\@thm@counter@suffix%
+     \fi
+    }%
+    \hskip\@thm@label@postskip]%
+    \if@thm@break \leavevmode\par\nobreak \fi
+}
+
+\def\@thm@comment@format#1{(#1\/)}
+\def\@@starttheorem#1#2[#3]{%
+  \item[\hskip\@thm@indent%
+    {\normalfont\@thm@headerfont
+     \@without@counterfalse
+     \if@thm@swap
+       \if@thm@counter@suffix@with@comment
+         \@thm@counter@format{#2}\@thm@counter@suffix%
+       \else
+         \@thm@counter@format{#2}\relax%
+       \fi
+       \hskip\@thm@counter@postskip
+       #1%
+       \if@thm@title@suffix@with@comment\@thm@title@suffix\fi
+       \hskip\@thm@title@postskip%
+     \else
+       #1%
+       \if@thm@title@suffix@with@comment\@thm@title@suffix\fi
+       \hskip\@thm@title@postskip%
+       \if@thm@counter@suffix@with@comment
+         \@thm@counter@format{#2}\@thm@counter@suffix%
+       \else
+         \@thm@counter@format{#2}\relax%
+       \fi
+       \hskip\@thm@counter@postskip
+     \fi
+    }%
+    {\@thm@commentfont\@thm@comment@format{#3}{%
+        \normalfont\@thm@headerfont\@thm@comment@suffix}}%
+    \hskip\@thm@label@postskip]%
+    \if@thm@break \leavevmode\par\nobreak \fi
+}
+
+\def\@endtheorem{\endtrivlist}
+
+\newskip\@thm@title@postskip
+\newskip\@thm@counter@postskip
+\newskip\@thm@label@postskip
+\newskip\@thm@aboveskip
+\newskip\@thm@belowskip
+
+\newdimen\@thm@leftmargin
+\newdimen\@thm@rightmargin
+\newdimen\@thm@indent
+\def\@thm@format@param@default{%
+  \def\@thm@counter@suffix{.}%
+  \def\@thm@comment@suffix{.}%
+  \def\@thm@title@suffix{.}%
+  \@thm@indent\parindent\relax
+  \@thm@title@postskip 5\p@\relax
+  \@thm@counter@postskip 5\p@\relax
+  \@thm@label@postskip 5\p@\relax
+  \@thm@aboveskip 13\p@ \@plus 3\p@ \@minus 5\p@\relax
+  \@thm@belowskip 13\p@ \@plus 3\p@ \@minus 5\p@\relax
+  \@thm@leftmargin\parindent\relax
+  \@thm@rightmargin\parindent\relax
+}
+\@thm@format@param@default
+\let\abovethmskip\@thm@aboveskip
+\let\belowthmskip\@thm@belowskip
+
+\def\parindent@default{\parindent}
+\def\@thm@format{%
+  \@thm@swapfalse
+  \@thm@breakfalse
+  \parindent\parindent@default
+  \leftskip  \@thm@leftmargin
+  \rightskip \@thm@rightmargin
+  \@topsep   \@thm@aboveskip
+  \parskip   \z@
+  \partopsep \z@
+  \@topsepadd\@thm@belowskip
+  \labelsep\z@
+}
+
+\@ifundefined{proofname}{\def\proofname{Proof}}\relax
+\def\@proof@headerfont{\bfseries\boldmath}
+\def\@proof@title@suffix{.}
+\def\@proof@format{\@thm@format}
+\def\Proof{\@testopt\@Proof{\proofname}}
+\newif\if@use@amsthm
+\@ifpackageloaded{amsthm}{\@use@amsthmtrue}{\@use@amsthmfalse}
+\def\@ams@proofenv@case{\if@use@amsthm \pushQED{\qed}\else\fi}
+\def\@proof@headerformat#1{%
+  \@ifundefined{@proof@indent}{\let\@proof@indent\@thm@indent}{\relax}%
+  \item[\hskip\@thm@indent%
+    {\normalfont\normalsize\@proof@headerfont%
+      {#1}\@proof@title@suffix%
+      \hskip\@thm@label@postskip}]%
+}
+\def\@Proof[#1]{\@ams@proofenv@case%
+  \trivlist
+  \@proof@format%
+  \@proof@headerformat{#1}}
+
+\@ifpackageloaded{amsthm}{%
+\def\endProof{\popQED\endtrivlist\@endpefalse}
+}{%
+\def\endProof{\@ifundefined{popQED}{\hfill\qedsymbol}\popQED%
+\endtrivlist}
+}
+
+\@ifundefined{qedsymbol}{%
+\def\qedsymbol{%
+   \hbox{%
+      \vrule
+      \vbox{%
+         \hrule\@width.66667em
+         \kern.66667em
+         \hrule}%
+      \vrule}}
+}\relax
+
+\@namedef{Proof*}{\Proof}
+\@namedef{endProof*}{\endtrivlist}
+
+\def\THMlike#1{%
+  \trivlist
+  \@thm@format
+  \item[\hskip\@thm@indent%
+    {\normalfont\normalsize\unskip#1\hskip\@thm@title@postskip%
+      \hskip\@thm@label@postskip}]%
+}
+\def\endTHMlike{\@endtheorem}
+
+\endinput
+%
+%% End of file `extendedtheorem.sty'.
